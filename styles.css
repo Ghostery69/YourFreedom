@@ -1,0 +1,144 @@
+/* Réinitialiser les marges et les paddings par défaut */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Style général du corps */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Conteneur central */
+.container {
+    width: 90%;
+    max-width: 600px;
+    margin: 0 auto;
+    position: relative; /* Pour les éléments positionnés */
+}
+
+/* En-tête */
+.header {
+    background-color: #990000;
+    color: white;
+    padding: 15px 0;
+    margin-bottom: 30px;
+    text-align: center;
+    border-bottom: 5px solid #cc0000;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo {
+    width: 40px; /* Réduit la taille du logo */
+    height: auto;
+    margin-right: 15px;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+/* Section principale */
+main {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+h2 {
+    color: #cc0000;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-top: 5px;
+    transition: border-color 0.3s ease-in-out;
+}
+
+input:focus {
+    border-color: #cc0000;
+}
+
+button {
+    background-color: #cc0000;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 100%;
+    margin-top: 10px;
+    transition: background-color 0.3s ease-in-out, transform 0.2s ease;
+}
+
+button:hover {
+    background-color: #b30000;
+    transform: translateY(-2px);
+}
+
+/* Résultat */
+#result {
+    padding: 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+    position: fixed; /* Fixe le message à une position spécifique */
+    top: 20px; /* Distance depuis le haut */
+    left: 50%; /* Centrer horizontalement */
+    transform: translateX(-50%); /* Centre horizontalement */
+    z-index: 1000; /* S'assure que le message est au-dessus des autres éléments */
+    width: calc(100% - 40px); /* Largeur ajustée pour éviter les débordements */
+    max-width: 500px; /* Largeur maximale pour le message */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Ombre pour améliorer la visibilité */
+}
+
+/* Style pour le message de succès */
+#result.success {
+    background-color: #28a745; /* Vert pour succès */
+}
+
+/* Style pour le message d'erreur */
+#result.error {
+    background-color: #dc3545; /* Rouge pour erreur */
+}
+
+/* Pied de page */
+footer {
+    background-color: #990000;
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+}
