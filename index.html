@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aviator Predictor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Variables et reset */
+        :root {
+            --primary: #5271FF;
+            --primary-dark: #3D56CC;
+            --secondary: #4ECDC4;
+            --background: #1A1A2E;
+            --card-bg: #22223B;
+            --text: #FFFFFF;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-muted: rgba(255, 255, 255, 0.5);
+            --success: #06D6A0;
+            --danger: #EF476F;
+            --warning: #FFD166;
+            --border-radius: 16px;
+            --border-radius-sm: 8px;
+            --spacing: 16px;
+            --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: var(--font-main);
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        
+        /* Structure principale */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            max-width: 100%;
+            margin: 0 auto;
+            min-height: 100vh;
+        }
+        
+        .app-header {
+            background-color: var(--card-bg);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .app-logo {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            font-size: 20px;
+        }
+        
+        .app-logo i {
+            margin-right: 10px;
+            color: var(--primary);
+            font-size: 24px;
+        }
+        
+        .app-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .icon-button {
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 20px;
+            padding: 8px;
+            cursor: pointer;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        /* Cards et Ã©lÃ©ments d'interface */
+        .card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* PrÃ©diction */
+        .prediction-card {
+            text-align: center;
+            padding: 24px 16px;
+            position: relative;
+        }
+        
+        .prediction-value {
+            font-size: 64px;
+            font-weight: 800;
+            margin: 16px 0;
+            color: var(--primary);
+            text-shadow: 0 0 10px rgba(82, 113, 255, 0.4);
+        }
+        
+        .prediction-label {
+            font-size: 18px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+        
+        .timer {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+        
+        /* Boutons */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        
+        .button {
+            flex: 1;
+            padding: 14px 16px;
+            border-radius: 30px;
+            border: none;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .button-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .button-primary:active {
+            background-color: var(--primary-dark);
+            transform: scale(0.98);
+        }
+        
+        .button-secondary {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+        }
+        
+        .button-secondary:active {
+            background-color: rgba(255, 255, 255, 0.15);
+            transform: scale(0.98);
+        }
+        
+        /* Loading */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 0;
+        }
+        
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* ParamÃ¨tres */
+        .settings-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .setting-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .setting-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .setting-label i {
+            color: var(--primary);
+        }
+        
+        select, input {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius-sm);
+            padding: 12px 16px;
+            color: var(--text);
+            font-size: 16px;
+            width: 100%;
+            appearance: none;
+        }
+        
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='rgba(255, 255, 255, 0.7)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 18px;
+            padding-right: 40px;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        /* Statistiques */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        
+        .stat-item {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: var(--border-radius-sm);
+            padding: 16px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 4px 0;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        /* Historique */
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 320px;
+            overflow-y: auto;
+            padding: 4px;
+        }
+        
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background-color: rgba(255, 255, 255, 0.03);
+            border-radius: var(--border-radius-sm);
+            border-left: 4px solid transparent;
+        }
+        
+        .history-item.success {
+            border-left-color: var(--success);
+        }
+        
+        .history-item.fail {
+            border-left-color: var(--danger);
+        }
+        
+        .history-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .history-prediction {
+            font-weight: 600;
+        }
+        
+        .history-actual {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        
+        .history-result {
+            font-size: 20px;
+        }
+        
+        .history-result.success {
+            color: var(--success);
+        }
+        
+        .history-result.fail {
+            color: var(--danger);
+        }
+        
+        /* Patterns */
+        .pattern-item {
+            background-color: rgba(255, 255, 255, 0.03);
+            border-radius: var(--border-radius-sm);
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+        
+        .pattern-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--secondary);
+        }
+        
+        .pattern-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+        
+        /* Navigation */
+        .app-tabs {
+            display: flex;
+            background-color: var(--card-bg);
+            position: sticky;
+            bottom: 0;
+            width: 100%;
+            z-index: 10;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 12px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.2s ease;
+            font-size: 12px;
+        }
+        
+        .tab i {
+            font-size: 20px;
+        }
+        
+        .tab.active {
+            color: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 16px;
+            right: 16px;
+            padding: 16px;
+            background-color: var(--card-bg);
+            color: var(--text);
+            border-radius: var(--border-radius-sm);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            transform: translateY(-150%);
+            transition: transform 0.3s ease-out;
+            z-index: 100;
+            gap: 12px;
+        }
+        
+        .notification i {
+            font-size: 20px;
+        }
+        
+        .notification.success i {
+            color: var(--success);
+        }
+        
+        .notification.error i {
+            color: var(--danger);
+        }
+        
+        .notification.info i {
+            color: var(--primary);
+        }
+        
+        .notification.show {
+            transform: translateY(0);
+        }
+        
+        /* Crash animation */
+        .crash-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .crash-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .crash-text {
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--danger);
+            animation: pulse 0.8s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Badge */
+        .badge {
+            display: inline-flex;
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            background-color: rgba(82, 113, 255, 0.2);
+            color: var(--primary);
+        }
+        
+        /* Responsiveness */
+        @media (min-width: 768px) {
+            .app-container {
+                max-width: 480px;
+                margin: 0 auto;
+                box-shadow: 0 0 40px rgba(0,0,0,0.3);
+                height: 100vh;
+                overflow-y: auto;
+                border-left: 1px solid rgba(255,255,255,0.05);
+                border-right: 1px solid rgba(255,255,255,0.05);
+            }
+            
+            .app-tabs {
+                max-width: 480px;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="app-logo">
+                <i class="fas fa-plane"></i>
+                <span>Aviator Predictor</span>
+            </div>
+            <div class="app-actions">
+                <button class="icon-button" id="settings-button">
+                    <i class="fas fa-sliders"></i>
+                </button>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <div class="tab-content active" id="home-tab-content">
+                <div class="card prediction-card">
+                    <div class="card-header">
+                        <div class="card-title">PrÃ©diction</div>
+                        <div class="badge" id="success-rate">0%</div>
+                    </div>
+                    
+                    <div id="prediction-display">
+                        <div class="prediction-label">Prochaine cÃ´te</div>
+                        <div class="prediction-value" id="prediction">--</div>
+                        <div class="timer" id="timer"></div>
+                    </div>
+                    
+                    <div class="loading" id="loading-indicator" style="display: none;">
+                        <div class="spinner"></div>
+                        <div>Analyse en cours...</div>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button id="generate-btn" class="button button-primary">
+                            <i class="fas fa-bolt"></i> Lancer
+                        </button>
+                        <button id="verify-btn" class="button button-secondary">
+                            <i class="fas fa-check"></i> VÃ©rifier
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-chart-bar"></i> Statistiques
+                        </div>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-label">PrÃ©cision</div>
+                            <div class="stat-value" id="accuracy">0%</div>
+                        </div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-label">PrÃ©dictions</div>
+                            <div class="stat-value" id="total-count">0</div>
+                        </div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-label">Moy. crash</div>
+                            <div class="stat-value" id="avg-multiplier">0x</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-history"></i> Derniers rÃ©sultats
+                        </div>
+                    </div>
+                    
+                    <div class="history-list" id="history-list">
+                        <div class="history-item">
+                            <div class="history-details">
+                                <div class="history-prediction">Aucun historique</div>
+                                <div class="history-actual">Lancez votre premiÃ¨re prÃ©diction</div>
+                            </div>
+                            <div class="history-result">--</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="settings-tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-cogs"></i> ParamÃ¨tres
+                        </div>
+                    </div>
+                    
+                    <div class="settings-grid">
+                        <div class="setting-item">
+                            <div class="setting-label">
+                                <i class="fas fa-code-branch"></i> Algorithme de prÃ©diction
+                            </div>
+                            <select id="algorithm">
+                                <option value="martingale">Martingale</option>
+                                <option value="pattern">Reconnaissance de Motifs</option>
+                                <option value="seed">Analyse de Seed</option>
+                                <option value="hybrid" selected>Hybride (RecommandÃ©)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-label">
+                                <i class="fas fa-fire-alt"></i> Niveau de risque
+                            </div>
+                            <select id="risk-level">
+                                <option value="low">Faible (1.1x - 2x)</option>
+                                <option value="medium" selected>Moyen (2x - 5x)</option>
+                                <option value="high">ÃlevÃ© (5x - 10x)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-label">
+                                <i class="fas fa-sign-in-alt"></i> Point d'entrÃ©e
+                            </div>
+                            <input type="number" id="entry-point" min="1.1" step="0.1" value="2.0">
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-label">
+                                <i class="fas fa-random"></i> VariabilitÃ©
+                            </div>
+                            <select id="variability">
+                                <option value="low">Faible</option>
+                                <option value="medium" selected>Moyenne</option>
+                                <option value="high">ÃlevÃ©e</option>
+                            </select>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-label">
+                                <i class="fas fa-chart-pie"></i> Mode d'analyse
+                            </div>
+                            <select id="analysis-mode">
+                                <option value="standard" selected>Standard</option>
+                                <option value="deep">Approfondie</option>
+                                <option value="quick">Rapide</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-project-diagram"></i> Motifs dÃ©tectÃ©s
+                        </div>
+                    </div>
+                    
+                    <div id="patterns-list">
+                        <div class="pattern-item">
+                            <div class="pattern-title">Aucun motif dÃ©tectÃ©</div>
+                            <div class="pattern-desc">GÃ©nÃ©rez plus de prÃ©dictions pour identifier des motifs rÃ©currents.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <nav class="app-tabs">
+            <div class="tab active" data-tab="home">
+                <i class="fas fa-home"></i>
+                <span>Accueil</span>
+            </div>
+            <div class="tab" data-tab="settings">
+                <i class="fas fa-cog"></i>
+                <span>ParamÃ¨tres</span>
+            </div>
+        </nav>
+    </div>
+    
+    <div class="notification" id="notification">
+        <i class="fas fa-info-circle"></i>
+        <div id="notification-text">Notification</div>
+    </div>
+    
+    <div class="crash-overlay" id="crash-overlay">
+        <div class="crash-text">CRASH!</div>
+    </div>
+    
+    <script>
+        // ÃlÃ©ments DOM
+        const predictionDisplay = document.getElementById('prediction');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const predictionDisplayArea = document.getElementById('prediction-display');
+        const timerDisplay = document.getElementById('timer');
+        const generateBtn = document.getElementById('generate-btn');
+        const verifyBtn = document.getElementById('verify-btn');
+        const algorithmSelect = document.getElementById('algorithm');
+        const riskLevelSelect = document.getElementById('risk-level');
+        const entryPointInput = document.getElementById('entry-point');
+        const accuracyDisplay = document.getElementById('accuracy');
+        const totalCountDisplay = document.getElementById('total-count');
+        const avgMultiplierDisplay = document.getElementById('avg-multiplier');
+        const successRateDisplay = document.getElementById('success-rate');
+        const patternsListDisplay = document.getElementById('patterns-list');
+        const historyListDisplay = document.getElementById('history-list');
+        const notificationDisplay = document.getElementById('notification');
+        const notificationText = document.getElementById('notification-text');
+        const crashOverlay = document.getElementById('crash-overlay');
+        const settingsButton = document.getElementById('settings-button');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        // Variables
+        let currentPrediction = null;
+        let predictionHistory = [];
+        let correctPredictions = 0;
+        let totalPredictions = 0;
+        let timerInterval = null;
+        let secondsRemaining = 0;
+        
+        // Configuration des niveaux de risque
+        const riskLevels = {
+            low: { min: 1.1, max: 2.0 },
+            medium: { min: 2.0, max: 5.0 },
+            high: { min: 5.0, max: 10.0 }
+        };
+        
+        // Motifs courants dans le jeu Aviator (simulÃ©s)
+        const commonPatterns = [
+            { pattern: "Faible, Faible, ÃlevÃ©", description: "AprÃ¨s deux cÃ´tes faibles, un multiplicateur Ã©levÃ© est probable" },
+            { pattern: "ÃlevÃ©, ÃlevÃ©, Faible", description: "AprÃ¨s deux cÃ´tes Ã©levÃ©s, un faible est attendu" },
+            { pattern: "Alternance", description: "Les cÃ´tes alternent souvent entre hauts et bas" },
+            { pattern: "Plateau", description: "SÃ©rie de cÃ´tes similaires avant un changement important" },
+            { pattern: "DÃ©croissance progressive", description: "Les cÃ´tes diminuent progressivement avant un pic" },
+            { pattern: "Croissance exponentielle", description: "Les cÃ´tes augmentent rapidement aprÃ¨s une sÃ©rie stable" }
+        ];
+        
+        // Navigation des onglets
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.getAttribute('data-tab');
+                
+                // DÃ©sactiver tous les onglets et contenus
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                // Activer l'onglet cliquÃ©
+                tab.classList.add('active');
+                
+                // Activer le contenu correspondant
+                document.getElementById(`${tabName}-tab-content`).classList.add('active');
+            });
+        });
+        
+        // Bouton de paramÃ¨tres
+        settingsButton.addEventListener('click', () => {
+            // Activer l'onglet de paramÃ¨tres
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+            
+            document.querySelector('.tab[data-tab="settings"]').classList.add('active');
+            document.getElementById('settings-tab-content').classList.add('active');
+        });
+        
+        // Fonction pour gÃ©nÃ©rer une prÃ©diction
+        function generatePrediction() {
+            // Afficher l'indicateur de chargement
+            loadingIndicator.style.display = 'flex';
+            predictionDisplayArea.style.display = 'none';
+            
+            // Simuler un temps de calcul (pour l'effet)
+            setTimeout(() => {
+                const algorithm = algorithmSelect.value;
+                const riskLevel = riskLevelSelect.value;
+                const { min, max } = riskLevels[riskLevel];
+                
+                let prediction;
+                
+                // DiffÃ©rents algorithmes de prÃ©diction (simulÃ©s)
+                switch(algorithm) {
+                    case 'martingale':
+                        // BasÃ© sur la thÃ©orie des probabilitÃ©s
+                        if (predictionHistory.length > 0) {
+                            const lastPrediction = predictionHistory[0].prediction;
+                            if (lastPrediction < 2) {
+                                prediction = min + (max - min) * 0.7 * Math.random();
+                            } else {
+                                prediction = min + (max - min) * 0.3 * Math.random();
+                            }
+                        } else {
+                            prediction = min + (max - min) * 0.5 * Math.random();
+                        }
+                        break;
+                        
+                    case 'pattern':
+                        // Reconnaissance de motifs
+                        if (predictionHistory.length >= 3) {
+                            const last3 = predictionHistory.slice(0, 3).map(h => h.prediction);
+                            const avg = last3.reduce((a, b) => a + b, 0) / 3;
+                            
+                            if (avg < 2) {
+                                prediction = 2 + Math.random() * 3; // Tendance Ã  la hausse probable
+                            } else {
+                                prediction = min + Math.random() * 1.5; // Retour Ã  la moyenne
+                            }
+                        } else {
+                            prediction = min + (max - min) * Math.random();
+                        }
+                        break;
+                        
+                    case 'seed':
+                        // Simulation d'analyse de seed (algorithme rÃ©el inconnu)
+                        prediction = min + (Math.sin(Date.now() / 10000) + 1) / 2 * (max - min);
+                        break;
+                        
+                    case 'hybrid':
+                    default:
+                        // Combinaison d'approches
+                        const randomComponent = Math.random();
+                        const timeComponent = (Math.sin(Date.now() / 15000) + 1) / 2;
+                        const historyComponent = predictionHistory.length > 0 
+                            ? (predictionHistory[0].prediction / 10)
+                            : 0.3;
+                        
+                        prediction = min + (randomComponent * 0.5 + timeComponent * 0.3 + historyComponent * 0.2) * (max - min);
+                        break;
+                }
+                
+                // Arrondir Ã  2 dÃ©cimales
+                prediction = Math.round(prediction * 100) / 100;
+                currentPrediction = prediction;
+                
+                // Mettre Ã  jour l'affichage
+                predictionDisplay.textContent = prediction.toFixed(2) + 'x';
+                loadingIndicator.style.display = 'none';
+                predictionDisplayArea.style.display = 'block';
+                
+                // DÃ©marrer le compte Ã  rebours
+                startTimer(30); // 30 secondes avant le prochain crash simulÃ©
+                
+                // Afficher une notification
+                showNotification("Nouvelle prÃ©diction lancÃ©e!", "info");
+                
+                // Mettre Ã  jour les motifs dÃ©tectÃ©s
+                updatePatterns();
+                
+            }, 1500); // Simuler 1.5 secondes de calcul
+        }
+        
+        // Fonction pour vÃ©rifier une prÃ©diction
+        function verifyPrediction() {
+            if (currentPrediction === null) {
+                showNotification("Lancer d'abord une prÃ©diction!", "error");
+                return;
+            }
+            
+            // Simuler un rÃ©sultat rÃ©el (dans un vrai cas, ce serait le rÃ©sultat du jeu)
+            const actualCrash = generateSimulatedCrash();
+            const entryPoint = parseFloat(entryPointInput.value);
+            
+            // DÃ©terminer si la prÃ©diction Ã©tait correcte (si on sortait avant le crash au point d'entrÃ©e)
+            const success = currentPrediction <= actualCrash && currentPrediction >= entryPoint;
+            
+            // Afficher animation de crash
+            crashOverlay.classList.add('show');
+            setTimeout(() => {
+                crashOverlay.classList.remove('show');
+            }, 1500);
+            
+            // Enregistrer dans l'historique
+            predictionHistory.unshift({
+                prediction: currentPrediction,
+                actual: actualCrash,
+                success: success,
+                timestamp: new Date()
+            });
+            
+            // Limiter l'historique Ã  10 entrÃ©es
+            if (predictionHistory.length > 10) {
+                predictionHistory.pop();
+            }
+            
+            // Mettre Ã  jour les statistiques
+            if (success) {
+                correctPredictions++;
+            }
+            totalPredictions++;
+            
+            // Mettre Ã  jour l'affichage
+            updateHistoryDisplay();
+            updateAccuracy();
+            updatePatterns();
+            
+            // RÃ©initialiser la prÃ©diction courante
+            currentPrediction = null;
+            predictionDisplay.textContent = "--";
+            
+            // ArrÃªter le compte Ã  rebours
+            clearInterval(timerInterval);
+            timerDisplay.textContent = "";
+            
+            // Afficher une notification
+            if (success) {
+                showNotification("PrÃ©diction correcte! Le crash Ã©tait Ã  " + actualCrash.toFixed(2) + "x", "success");
+            } else {
+                showNotification("PrÃ©diction incorrecte! Le crash Ã©tait Ã  " + actualCrash.toFixed(2) + "x", "error");
+            }
+        }
+        
+        // GÃ©nÃ©rer un crash simulÃ©
+        function generateSimulatedCrash() {
+            // Simuler la distribution des crashs Aviator (valeur plus probable autour de 1.5-2x)
+            const randomValue = Math.random();
+            let crash;
+            
+            if (randomValue < 0.5) {
+                // 50% de chance d'avoir un crash entre 1.0 et 2.0
+                crash = 1.0 + randomValue * 2;
+            } else if (randomValue < 0.8) {
+                // 30% de chance d'avoir un crash entre 2.0 et 5.0
+                crash = 2.0 + (randomValue - 0.5) * 10;
+            } else {
+                // 20% de chance d'avoir un crash plus Ã©levÃ©
+                crash = 5.0 + (randomValue - 0.8) * 25;
+            }
+            
+            return Math.round(crash * 100) / 100;
+        }
+        
+        // Mettre Ã  jour l'affichage de l'historique
+        function updateHistoryDisplay() {
+            historyListDisplay.innerHTML = "";
+            
+            if (predictionHistory.length === 0) {
+                const emptyItem = document.createElement('div');
+                emptyItem.className = 'history-item';
+                emptyItem.innerHTML = `
+                    <div class="history-details">
+                        <div class="history-prediction">Aucun historique</div>
+                        <div class="history-actual">GÃ©nÃ©rez votre premiÃ¨re prÃ©diction</div>
+                    </div>
+                    <div class="history-result">--</div>
+                `;
+                historyListDisplay.appendChild(emptyItem);
+                return;
+            }
+            
+            predictionHistory.forEach(entry => {
+                const historyItem = document.createElement('div');
+                historyItem.className = entry.success ? 'history-item success' : 'history-item fail';
+                
+                historyItem.innerHTML = `
+                    <div class="history-details">
+                        <div class="history-prediction">PrÃ©d: ${entry.prediction.toFixed(2)}x</div>
+                        <div class="history-actual">RÃ©el: ${entry.actual.toFixed(2)}x</div>
+                    </div>
+                    <div class="history-result ${entry.success ? 'success' : 'fail'}">
+                        ${entry.success ? 'â' : 'â'}
+                    </div>
+                `;
+                
+                historyListDisplay.appendChild(historyItem);
+            });
+        }
+        
+        // Mettre Ã  jour l'affichage de la prÃ©cision
+        function updateAccuracy() {
+            if (totalPredictions > 0) {
+                const accuracy = (correctPredictions / totalPredictions) * 100;
+                accuracyDisplay.textContent = accuracy.toFixed(1) + "%";
+                successRateDisplay.textContent = accuracy.toFixed(1) + "%";
+                totalCountDisplay.textContent = totalPredictions;
+                
+                // Calculer la moyenne des multiplicateurs rÃ©els
+                if (predictionHistory.length > 0) {
+                    const sum = predictionHistory.reduce((acc, entry) => acc + entry.actual, 0);
+                    const avg = sum / predictionHistory.length;
+                    avgMultiplierDisplay.textContent = avg.toFixed(2) + "x";
+                }
+            }
+        }
+        
+        // Mettre Ã  jour les motifs dÃ©tectÃ©s
+        function updatePatterns() {
+            patternsListDisplay.innerHTML = "";
+            
+            if (predictionHistory.length < 3) {
+                const emptyPattern = document.createElement('div');
+                emptyPattern.className = 'pattern-item';
+                emptyPattern.innerHTML = `
+                    <div class="pattern-title">Aucun motif dÃ©tectÃ©</div>
+                    <div class="pattern-desc">GÃ©nÃ©rez plus de prÃ©dictions pour identifier des motifs rÃ©currents.</div>
+                `;
+                patternsListDisplay.appendChild(emptyPattern);
+                return;
+            }
+            
+            // Simuler la dÃ©tection de motifs
+            const patternCount = 1 + Math.floor(Math.random() * 3);
+            const selectedPatterns = [];
+            
+            // SÃ©lectionner des motifs alÃ©atoires sans duplication
+            while (selectedPatterns.length < patternCount) {
+                const randomIndex = Math.floor(Math.random() * commonPatterns.length);
+                const pattern = commonPatterns[randomIndex];
+                
+                if (!selectedPatterns.some(p => p.pattern === pattern.pattern)) {
+                    selectedPatterns.push(pattern);
+                }
+            }
+            
+            selectedPatterns.forEach(patternData => {
+                const patternItem = document.createElement('div');
+                patternItem.className = 'pattern-item';
+                
+                patternItem.innerHTML = `
+                    <div class="pattern-title">${patternData.pattern}</div>
+                    <div class="pattern-desc">${patternData.description}</div>
+                `;
+                
+                patternsListDisplay.appendChild(patternItem);
+            });
+        }
+        
+        // DÃ©marrer un compte Ã  rebours
+        function startTimer(seconds) {
+            clearInterval(timerInterval);
+            secondsRemaining = seconds;
+            
+            updateTimerDisplay();
+            
+            timerInterval = setInterval(() => {
+                secondsRemaining--;
+                
+                if (secondsRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    timerDisplay.textContent = "Temps Ã©coulÃ©! VÃ©rifiez le rÃ©sultat";
+                } else {
+                    updateTimerDisplay();
+                }
+            }, 1000);
+        }
+        
+        // Mettre Ã  jour l'affichage du compte Ã  rebours
+        function updateTimerDisplay() {
+            timerDisplay.textContent = `Prochain crash estimÃ© dans ${secondsRemaining} secondes`;
+        }
+        
+        // Afficher une notification
+        function showNotification(message, type = "info") {
+            notificationText.textContent = message;
+            
+            // RÃ©initialiser les classes
+            notificationDisplay.className = "notification";
+            notificationDisplay.classList.add(type);
+            
+            // DÃ©finir l'icÃ´ne en fonction du type
+            const iconElement = notificationDisplay.querySelector('i');
+            
+            if (type === "error") {
+                iconElement.className = "fas fa-exclamation-circle";
+            } else if (type === "success") {
+                iconElement.className = "fas fa-check-circle";
+            } else {
+                iconElement.className = "fas fa-info-circle";
+            }
+            
+            notificationDisplay.classList.add("show");
+            
+            setTimeout(() => {
+                notificationDisplay.classList.remove("show");
+            }, 3000);
+        }
+        
+        // Gestionnaires d'Ã©vÃ©nements
+        generateBtn.addEventListener('click', generatePrediction);
+        verifyBtn.addEventListener('click', verifyPrediction);
+        
+        // Initialiser l'interface
+        updateHistoryDisplay();
+        updateAccuracy();
+        updatePatterns();
+    </script>
+</body>
+</html>
